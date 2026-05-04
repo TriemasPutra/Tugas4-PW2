@@ -1,0 +1,6 @@
+# Jangan commit foto-foto yang diunggah user
+/uploads/*
+
+# Kecualikan file kontrol folder
+!/uploads/.gitkeep
+!/uploads/.htaccess

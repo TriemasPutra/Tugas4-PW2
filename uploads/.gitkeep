@@ -1,0 +1,2 @@
+# File ini menjaga agar folder uploads/ terlacak oleh Git.
+# File foto yang diunggah akan disimpan di folder ini.

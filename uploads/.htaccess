@@ -1,0 +1,7 @@
+# Larang eksekusi script PHP di dalam folder uploads (keamanan)
+php_flag engine off
+
+# Larang akses ke file selain gambar (Apache 2.4+)
+<FilesMatch "(?i)\.(php|php3|php4|php5|phtml|pl|cgi|sh|py|rb)$">
+    Require all denied
+</FilesMatch>

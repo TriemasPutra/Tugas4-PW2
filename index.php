@@ -357,11 +357,12 @@ fotoInput.addEventListener('change', function () {
         }
     });
 
-    // Sync file input dengan DataTransfer
-    fotoInput.files = selectedFiles.files;
-
     renderPreviews();
-    this.value = ''; // reset input agar file yang sama bisa dipilih ulang
+    // Reset nilai input agar file yang sama bisa dipilih ulang.
+    // JANGAN lakukan fotoInput.files = selectedFiles.files sebelum reset ini,
+    // karena itu akan membuat keduanya berbagi referensi FileList yang sama
+    // sehingga this.value = '' akan mengosongkan selectedFiles juga.
+    this.value = '';
 });
 
 function renderPreviews() {
@@ -401,7 +402,6 @@ function removePhoto(e) {
         if (i !== idx) newDT.items.add(file);
     });
     selectedFiles = newDT;
-    fotoInput.files = selectedFiles.files;
 
     renderPreviews();
 }
@@ -419,7 +419,6 @@ function resetForm() {
     form.reset();
     form.classList.remove('was-validated');
     selectedFiles = new DataTransfer();
-    fotoInput.files = selectedFiles.files;
     previewContainer.innerHTML = '';
     hideStatus();
     setBtnLoading(false);
@@ -516,7 +515,6 @@ document.getElementById('btnSubmit').addEventListener('click', function () {
             formEl.reset();
             formEl.classList.remove('was-validated');
             selectedFiles = new DataTransfer();
-            fotoInput.files = selectedFiles.files;
             previewContainer.innerHTML = '';
         } else {
             showStatus('GAGAL', data.pesan || 'Terjadi kesalahan tidak diketahui.');

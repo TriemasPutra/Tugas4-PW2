@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manajemen Berita</title>
 
-    <!-- Bootstrap 5 CSS (local) -->
-    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
-    <!-- Bootstrap Icons (local) -->
-    <link rel="stylesheet" href="assets/css/bootstrap-icons.min.css">
-    <!-- jQuery -->
+    <!-- Bootstrap 5 CSS -->
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/bootstrap-icons.min.css" rel="stylesheet">
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+
+    <!-- jQuery 4 -->
     <script src="https://code.jquery.com/jquery-4.0.0.min.js" integrity="sha256-OaVG6prZf4v69dPg6PhVattBXkcOWQB62pdZ3ORyrao=" crossorigin="anonymous"></script>
 
     <style>
@@ -63,6 +64,7 @@
         #statusBanner { display: none; }
     </style>
 </head>
+
 <body>
 
 <!-- ── Hero ─────────────────────────────────────────────────────────────────── -->
@@ -107,7 +109,7 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4">
+                            <td colspan="7" class="text-center text-muted py-4">
                                 <i class="bi bi-inbox fs-4 d-block mb-1"></i>
                                 Belum ada berita. Klik <strong>Tambah Berita</strong> untuk memulai.
                             </td>
@@ -444,7 +446,7 @@ document.getElementById('btnSubmit').addEventListener('click', function () {
         if (data.status === 'SUKSES') {
             showStatus('SUKSES', data.pesan + (data.data ? ' (ID: ' + data.data.berita_id + ', Foto: ' + data.data.foto_count + ')' : ''));
             // Tambahkan baris baru ke tabel (gunakan nilai yang diambil sebelum reset)
-            addRowToTable(data.data.fotos, judulVal, sinopsisVal, data.data.created_at);
+            addRowToTable(data.data.fotos, judulVal, sinopsisVal, data.data.created_at, data.data.berita_id);
             // Reset form (pertahankan modal terbuka agar user melihat banner)
             const formEl = document.getElementById('formBerita');
             formEl.reset();
@@ -466,7 +468,7 @@ document.getElementById('btnSubmit').addEventListener('click', function () {
 ───────────────────────────────────────────────────────────────────────────── */
 let rowCounter = 0;
 
-function addRowToTable(foto, judul, sinopsis, dateAdded = null) {
+function addRowToTable(foto, judul, sinopsis, dateAdded = null, id) {
     const tbody = document.querySelector('#tabelBerita tbody');
     rowCounter++;
 
@@ -491,9 +493,9 @@ function addRowToTable(foto, judul, sinopsis, dateAdded = null) {
         <td>${imagesHtml}</td>
         <td class="small"> ${now} </td>
         <td>
-            <button class="btn btn-sm btn-outline-danger" disabled>
+            <a class="btn btn-sm btn-outline-danger" href="api/delete_berita.php?id=${id}" onclick="return confirm('Apakah Anda yakin ingin menghapus berita ini?');">
                 <i class="bi bi-trash"></i>
-            </button>
+            </a>
         </td>`;
     tbody.appendChild(tr);
 }
@@ -525,7 +527,7 @@ function loadBeritaTabel() {
             }
             console.log('Data berita berhasil dimuat:', response.data);
             for (const berita of response.data) {
-                addRowToTable(berita.fotos, berita.judul, berita.sinopsis, berita.created_at);
+                addRowToTable(berita.fotos, berita.judul, berita.sinopsis, berita.created_at, berita.id);
             }
         },
         error: function() {

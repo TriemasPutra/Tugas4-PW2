@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <!-- Bootstrap Icons (local) -->
     <link rel="stylesheet" href="assets/css/bootstrap-icons.min.css">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-4.0.0.min.js" integrity="sha256-OaVG6prZf4v69dPg6PhVattBXkcOWQB62pdZ3ORyrao=" crossorigin="anonymous"></script>
 
     <style>
         body { background-color: #f8f9fa; }
@@ -98,7 +100,9 @@
                             <th>Judul</th>
                             <th>Sinopsis</th>
                             <th style="width:120px">Foto</th>
+                            <th style="width:200px"></th>
                             <th style="width:160px">Ditambahkan</th>
+                            <th style="width:100px">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -225,75 +229,6 @@
                     </div>
 
                 </form>
-
-                <!-- ── Perbandingan JSON vs XML ─────────────────────────────── -->
-                <hr>
-                <details>
-                    <summary class="fw-semibold text-secondary" style="cursor:pointer">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Perbandingan Format Data: JSON vs XML
-                    </summary>
-                    <div class="mt-2 p-3 bg-light rounded small">
-
-                        <p class="mb-2">
-                            Aplikasi ini menggunakan <strong>JSON</strong> sebagai format pertukaran
-                            data antara frontend dan backend melalui AJAX. Berikut perbandingannya
-                            dengan <strong>XML</strong>:
-                        </p>
-
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="border rounded p-2 h-100">
-                                    <p class="fw-semibold text-success mb-1"><i class="bi bi-braces me-1"></i>JSON</p>
-                                    <pre class="mb-2 text-success" style="font-size:11px">{
-  "status": "SUKSES",
-  "pesan": "Berita berhasil disimpan.",
-  "data": {
-    "berita_id": 1,
-    "foto_count": 2
-  }
-}</pre>
-                                    <ul class="mb-0 ps-3">
-                                        <li>Lebih ringkas dan mudah dibaca.</li>
-                                        <li>Parse langsung ke objek JS (<code>JSON.parse</code>).</li>
-                                        <li>Ukuran payload lebih kecil (&plusmn; 30&ndash;40% lebih kecil).</li>
-                                        <li>Standar de‑facto untuk REST API modern.</li>
-                                        <li>Dukungan native di semua bahasa pemrograman populer.</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="border rounded p-2 h-100">
-                                    <p class="fw-semibold text-danger mb-1"><i class="bi bi-code-slash me-1"></i>XML</p>
-                                    <pre class="mb-2 text-danger" style="font-size:11px">&lt;response&gt;
-  &lt;status&gt;SUKSES&lt;/status&gt;
-  &lt;pesan&gt;Berita berhasil disimpan.&lt;/pesan&gt;
-  &lt;data&gt;
-    &lt;berita_id&gt;1&lt;/berita_id&gt;
-    &lt;foto_count&gt;2&lt;/foto_count&gt;
-  &lt;/data&gt;
-&lt;/response&gt;</pre>
-                                    <ul class="mb-0 ps-3">
-                                        <li>Lebih verbose; banyak tag pembuka &amp; penutup.</li>
-                                        <li>Butuh XML parser atau <code>DOMParser</code> di browser.</li>
-                                        <li>Payload lebih besar → lebih lambat dikirim/terima.</li>
-                                        <li>Cocok untuk dokumen terstruktur kompleks (SOAP, dll.).</li>
-                                        <li>Mendukung validasi schema (XSD) dan namespace.</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <p class="mt-3 mb-0">
-                            <strong>Kesimpulan:</strong> Untuk aplikasi web modern berbasis AJAX,
-                            <strong>JSON lebih unggul</strong> karena lebih ringan, lebih cepat
-                            diparse, dan lebih mudah diintegrasikan dengan JavaScript. XML lebih
-                            relevan pada sistem enterprise lama atau layanan SOAP yang memerlukan
-                            validasi skema yang ketat.
-                        </p>
-                    </div>
-                </details>
-
             </div><!-- /modal-body -->
 
             <!-- Footer -->
@@ -505,11 +440,11 @@ document.getElementById('btnSubmit').addEventListener('click', function () {
     })
     .then(function (data) {
         setBtnLoading(false);
-
+        console.log('Response dari server:', data);
         if (data.status === 'SUKSES') {
             showStatus('SUKSES', data.pesan + (data.data ? ' (ID: ' + data.data.berita_id + ', Foto: ' + data.data.foto_count + ')' : ''));
             // Tambahkan baris baru ke tabel (gunakan nilai yang diambil sebelum reset)
-            addRowToTable(data, judulVal, sinopsisVal);
+            addRowToTable(data.data.fotos, judulVal, sinopsisVal, data.data.created_at);
             // Reset form (pertahankan modal terbuka agar user melihat banner)
             const formEl = document.getElementById('formBerita');
             formEl.reset();
@@ -531,7 +466,7 @@ document.getElementById('btnSubmit').addEventListener('click', function () {
 ───────────────────────────────────────────────────────────────────────────── */
 let rowCounter = 0;
 
-function addRowToTable(data, judul, sinopsis) {
+function addRowToTable(foto, judul, sinopsis, dateAdded = null) {
     const tbody = document.querySelector('#tabelBerita tbody');
     rowCounter++;
 
@@ -540,17 +475,26 @@ function addRowToTable(data, judul, sinopsis) {
     if (placeholder) {
         placeholder.closest('tr').remove();
     }
+    const imagesHtml = foto.map(url => 
+      `<img src="${url}" style="width:40px;height:40px;object-fit:cover;margin-right:4px;">`
+    ).join('');
 
-    const fotoCount = data.data ? data.data.foto_count : 0;
-    const now = new Date().toLocaleString('id-ID');
+    const fotoCount = foto.length;
+    const now = dateAdded ?? new Date().toLocaleString('id-ID');
 
     const tr = document.createElement('tr');
     tr.innerHTML =
-        '<td>' + rowCounter + '</td>' +
-        '<td class="fw-semibold">' + escapeHtml(judul) + '</td>' +
-        '<td class="text-muted small">' + escapeHtml(sinopsis.substring(0, 80)) + (sinopsis.length > 80 ? '…' : '') + '</td>' +
-        '<td><span class="badge bg-secondary">' + fotoCount + ' foto</span></td>' +
-        '<td class="small">' + now + '</td>';
+        `<td> ${rowCounter} </td> 
+        <td class="fw-semibold"> ${escapeHtml(judul)} </td>
+        <td class="text-muted small"> ${escapeHtml(sinopsis.substring(0, 80)) + (sinopsis.length > 80 ? '…' : '')} </td>
+        <td><span class="badge bg-secondary"> ${fotoCount} foto</span></td>
+        <td>${imagesHtml}</td>
+        <td class="small"> ${now} </td>
+        <td>
+            <button class="btn btn-sm btn-outline-danger" disabled>
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>`;
     tbody.appendChild(tr);
 }
 
@@ -562,6 +506,37 @@ function escapeHtml(str) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#39;');
 }
+
+function renderTableError(message) {
+    $('#tabelBerita tbody').html(
+        `<tr><td colspan="4" class="text-center text-danger py-4">${escapeHtml(message)}</td></tr>`
+    );
+}
+
+function loadBeritaTabel() {
+    $.ajax({
+        url: 'api/list_berita.php',
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            if (!response || response.status !== 'SUKSES' || !Array.isArray(response.data)) {
+                renderTableError('Format data tidak valid.');
+                return;
+            }
+            console.log('Data berita berhasil dimuat:', response.data);
+            for (const berita of response.data) {
+                addRowToTable(berita.fotos, berita.judul, berita.sinopsis, berita.created_at);
+            }
+        },
+        error: function() {
+            renderTableError('Gagal memuat data dari database.');
+        }
+    });
+}
+
+(function () {
+    loadBeritaTabel();
+})();
 </script>
 
 </body>

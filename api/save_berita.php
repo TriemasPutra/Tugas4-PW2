@@ -115,6 +115,8 @@ try {
     respond('SUKSES', 'Berita berhasil disimpan.', [
         'berita_id'  => $beritaId,
         'foto_count' => count($urlFotoList),
+        'fotos'     => $urlFotoList,
+        'created_at' => date('Y-m-d H:i:s') // Tambahkan timestamp pembuatan
     ]);
 
 } catch (Throwable $e) {

@@ -22,10 +22,6 @@ fotoInput.addEventListener('change', function () {
     });
 
     renderPreviews();
-    // Reset nilai input agar file yang sama bisa dipilih ulang.
-    // JANGAN lakukan fotoInput.files = selectedFiles.files sebelum reset ini,
-    // karena itu akan membuat keduanya berbagi referensi FileList yang sama
-    // sehingga this.value = '' akan mengosongkan selectedFiles juga.
     this.value = '';
 });
 
@@ -131,7 +127,6 @@ function setBtnLoading(loading) {
 document.getElementById('btnSubmit').addEventListener('click', function () {
     const form = document.getElementById('formBerita');
 
-    // Validasi HTML5
     form.classList.add('was-validated');
     if (!form.checkValidity()) {
         return;
@@ -140,14 +135,11 @@ document.getElementById('btnSubmit').addEventListener('click', function () {
     hideStatus();
     setBtnLoading(true);
 
-    // Catatan: nilai form diambil sebelum AJAX agar konsisten dengan data yang dikirim
     const judulVal    = document.getElementById('judul').value.trim();
     const sinopsisVal = document.getElementById('sinopsis').value.trim();
 
-    // Bangun FormData dari form + file-file yang dipilih
     const formData = new FormData(form);
 
-    // Hapus entri foto[] lama lalu tambahkan ulang dari selectedFiles
     formData.delete('foto[]');
     Array.from(selectedFiles.files).forEach(file => {
         formData.append('foto[]', file);
@@ -169,12 +161,12 @@ document.getElementById('btnSubmit').addEventListener('click', function () {
     })
     .then(function (data) {
         setBtnLoading(false);
-        console.log('Response dari server:', data);
+        
         if (data.status === 'SUKSES') {
             showStatus('SUKSES', data.pesan + (data.data ? ' (ID: ' + data.data.berita_id + ', Foto: ' + data.data.foto_count + ')' : ''));
-            // Tambahkan baris baru ke tabel (gunakan nilai yang diambil sebelum reset)
+
             addRowToTable(data.data.fotos, judulVal, sinopsisVal, data.data.created_at, data.data.berita_id);
-            // Reset form (pertahankan modal terbuka agar user melihat banner)
+
             const formEl = document.getElementById('formBerita');
             formEl.reset();
             formEl.classList.remove('was-validated');
